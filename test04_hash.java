@@ -1,58 +1,64 @@
 package test04;
 
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.Scanner;
 
-
-
-public class test04_02 {
-	public static File[] dfs(String path) {
+public class test04_03 {
+	static ArrayList<File> fstotol = new ArrayList<File>();
+	public static ArrayList<File> dfs(String path) {
 		File dir = new File(path);
 		File[] fs = dir.listFiles();
-		File temp;
 		for(int i=0;i<fs.length;i++) {
-			for(int j=i;j<fs.length;j++) {
-				if(fs[i].getName().compareTo(fs[j].getName())>0){
-					temp = fs[i];
-					fs[i] = fs[j];
-					fs[j] = temp;
-				}
+			if(fs[i].isFile()) {
+				fstotol.add(fs[i]);
 			}
-		}
-		for(int i=0;i<fs.length;i++) {
 			if(fs[i].isDirectory()) {
+				fstotol.add(fs[i]);
 				dfs(path+File.separator+fs[i].getName());
 			}
 		}
-		
-		return fs;
+		return fstotol;
 	}
-
-	public static byte[] SHA1Checksum(File a[]) throws Exception {
-		int len = a.length;
+	public static byte[] SHA1Checksum(ArrayList<File> a) throws Exception {
+		int len = a.size();
 		MessageDigest m=MessageDigest.getInstance("SHA-1");
 		for(int i=0;i<len;i++) {
-			m.update(a[i].toString().getBytes("UTF-8"));
-			
+			if(a.get(i).isFile()) {
+				FileInputStream is = new FileInputStream(a.get(i));
+				byte[] buffer = new byte[1024];
+				int num = 0;
+				do {
+					num = is.read(buffer);
+					if(num>0) {
+						m.update(buffer ,0 ,num);
+					}
+				}while(num!=-1);
+					is.close();
+			}
 		}
+			//m.update(String.valueOf(a[i]) .getBytes("UTF-8"));//å°†æ–‡ä»¶åæˆ–æ–‡ä»¶å¤¹åhash
 		return m.digest();
 	}
-
-	public static void main(String[] args) {
+	public static void main(String args[]) {
 		try {
-			System.out.println("ÇëÊäÈëµØÖ·£º");
+			System.out.println("è¯·è¾“å…¥è·¯å¾„ï¼š");
 			Scanner input = new Scanner(System.in);
-			String path = input.nextLine();
-			File[] a = dfs(path);
-			byte[] sha1 = SHA1Checksum(a);
+			String path = input.next();
+			ArrayList<File> f = dfs(path);
+			for(int i =0;i<f.size();i++) {
+				System.out.println(f.get(i).getName());
+			}
+			byte[] sha1 = SHA1Checksum(f);
 			String result = "";
-			for(int i =0;i<sha1.length;i++) {
+			for(int i=0;i<sha1.length;i++) {
 				result += Integer.toString(sha1[i]&0xFF,16);
 			}
 			System.out.println(result);
-		}catch(Exception e){
+		}catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
